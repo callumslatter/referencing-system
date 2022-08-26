@@ -1,40 +1,57 @@
-// read the text in
-var referenceLibrary = [];
-var inputText = "Mollitia quasi dolorem molestiae ut est voluptates quidem.[Fitt 2011] Natus sit dolore eveniet modi dolores dolore.[Auchinleck 1992] [Wix 2012] Voluptatem vel vel officiis recusandae hic. Sit esse eaque quisquam provident odit et quis nostrum. Dolores ea maiores.[Elcom 2004] [Lindroos 2007] [O'Sheeryne 2004] Iste aut deleniti maiores aliquam asperiores illum consectetur.[Lindroos 2007] [Webben 1987] [Smithin 2004] [Brambill 2001] Ut in et voluptatem sit odit laborum. Veritatis aut reiciendis quasi mollitia esse qui.[Auchinleck 1992] [Wix 2012] [Lindroos 2007] [Smithin 2004] [Brambill 2001] [Varvell 2011]";
+// second pass - with a copy of the text
+const referenceLibrary = [];
+// Declaring regexes
+const referenceIdentificationRegexGlobal = /\[(.+?)\]/g;
+const referenceIdentificationRegex = /\[(.+?)\]/;
+const squareBracketRegex = /[\[\]]/g;
+const inputText = "Mollitia quasi dolorem molestiae ut est voluptates quidem.[Fitt 2011] Natus sit dolore eveniet modi dolores dolore.[Auchinleck 1992] [Wix 2012] Voluptatem vel vel officiis recusandae hic. Sit esse eaque quisquam provident odit et quis nostrum. Dolores ea maiores.[Elcom 2004] [Lindroos 2007] [O'Sheeryne 2004] Iste aut deleniti maiores aliquam asperiores illum consectetur.[Lindroos 2007] [Webben 1987] [Smithin 2004] [Brambill 2001] Ut in et voluptatem sit odit laborum. Veritatis aut reiciendis quasi mollitia esse qui.[Auchinleck 1992] [Wix 2012] [Lindroos 2007] [Smithin 2004] [Brambill 2001] [Varvell 2011]";
+// function identifyReferences(inputText: string) {
+//     const matches = inputText.matchAll(referenceIdentificationRegexGlobal)
+// }
 function referenceExtractor(inputText) {
-    var referenceIdentificationRegex = /\[(.+?)\]/g;
-    var squareBracketRegex = /[\[\]]/g;
+    const extractedReferences = [];
     // Extract all references from the text
-    var rawReferences = inputText.match(referenceIdentificationRegex);
+    const rawReferences = inputText.match(referenceIdentificationRegexGlobal);
     if (typeof rawReferences === null) {
         throw new Error("No matching expressions found.");
     }
-    var extractedReferences = [];
-    // Remove square brackets from all extracted references and append to extractedReferences array
-    rawReferences === null || rawReferences === void 0 ? void 0 : rawReferences.forEach(function (reference) {
-        var debracketedReference = reference.replace(squareBracketRegex, "");
-        extractedReferences.push(debracketedReference);
+    // Append to extractedReferences 
+    rawReferences?.forEach((reference) => {
+        extractedReferences.push(reference);
     });
-    return extractedReferences;
+    referenceLibraryBuilder(extractedReferences);
 }
 function referenceLibraryBuilder(extractedReferences) {
-    extractedReferences.forEach(function (inputReference) {
+    extractedReferences.forEach((inputReference) => {
         // Could be extracted into its own function
-        var referenceExists = referenceLibrary.some(function (reference) {
+        const referenceExists = referenceLibrary.some((reference) => {
             if (reference.nameYear === inputReference) {
                 return true;
             }
             return false;
         });
         if (!referenceExists) {
-            var reference = {
+            const reference = {
                 id: referenceLibrary.length + 1,
-                nameYear: inputReference
+                nameYear: inputReference,
             };
             referenceLibrary.push(reference);
         }
     });
 }
-var extractedReferences = referenceExtractor(inputText);
-referenceLibraryBuilder(extractedReferences);
-console.log(referenceLibrary);
+referenceExtractor(inputText);
+function textFormatter(inputText) {
+    let inputTextCopy = inputText.slice();
+    const matches = inputTextCopy.matchAll(referenceIdentificationRegexGlobal);
+    for (const match of matches) {
+        console.log(`Found ${match[0]}`);
+        const foundReference = referenceLibrary.filter((reference) => {
+            return (reference.nameYear === match[0].toString());
+        });
+        console.log(foundReference);
+        inputTextCopy = inputTextCopy.replace(foundReference[0].nameYear, `(${foundReference[0].id})`);
+    }
+    console.log(inputTextCopy);
+}
+console.log(`This is the referenceLibrary: ${JSON.stringify(referenceLibrary, null, 2)}`);
+textFormatter(inputText);
