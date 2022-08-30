@@ -25,16 +25,6 @@ Create an API that you can send unformatted text to, and have it return the form
 
 4,5,6
 
-7,8,9,10
+5,7,8,9
 
-11,12,13,14,15,16
-
-
-
-// if reference identified
-// add to a mini array for formatting purposes
-// check if the next non space character is a valid reference too
-// If it is, add it to the mini array for formatting purposes
-// If not, then run mini array through formatter
-// Apply the rules laid out in the brief
-// Replace the references with the formatted arrays
+2,3,5,8,9,10

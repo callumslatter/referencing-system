@@ -2,15 +2,67 @@ const referenceLibrary = new Map();
 const referenceInstanceLibrary = new Map();
 // Keep track of groups of references
 let groupOfReferencesForFormatting = [];
+let startOfReferenceIndex = 0;
+let startOfSectionIndex = 0;
 referenceInstanceCount = 0;
+let lastReferenceToBeCleared;
 let remainingText = "";
+let outputText = "";
+let finalText = "";
 // REGEX
 const REFERENCE_IDENTIFICATION_REGEX = /\[(.+?)\]/g;
 // INPUT
 const inputText = "Mollitia quasi dolorem molestiae ut est voluptates quidem.[Fitt 2011] Natus sit dolore eveniet modi dolores dolore.[Auchinleck 1992] [Wix 2012] Voluptatem vel vel officiis recusandae hic. Sit esse eaque quisquam provident odit et quis nostrum. Dolores ea maiores.[Elcom 2004] [Lindroos 2007] [O'Sheeryne 2004] Iste aut deleniti maiores aliquam asperiores illum consectetur.[Lindroos 2007] [Webben 1987] [Smithin 2004] [Brambill 2001] Ut in et voluptatem sit odit laborum. Veritatis aut reiciendis quasi mollitia esse qui.[Auchinleck 1992] [Wix 2012] [Lindroos 2007] [Smithin 2004] [Brambill 2001] [Varvell 2011]";
-// Helper Function
-function identifyReferences(inputText) {
-    return inputText.matchAll(REFERENCE_IDENTIFICATION_REGEX);
+function referenceExtractor(inputText) {
+    // Keeping track of which reference was at which index
+    let instanceCounter = 1;
+    const referenceInstances = identifyReferences(inputText);
+    for (const referenceInstance of referenceInstances) {
+        const newReferenceInstance = {
+            nameYear: referenceInstance[0],
+            index: referenceInstance.index,
+        };
+        referenceInstanceLibrary.set(instanceCounter, newReferenceInstance);
+        instanceCounter++;
+    }
+    console.log(referenceInstanceLibrary);
+    // Run the text through some regex
+    const rawReferences = identifyReferences(inputText);
+    // Build a collection of references and their locations
+    for (const rawReference of rawReferences) {
+        if (recordExists(rawReference)) {
+            const existingReference = referenceLibrary.get(rawReference[0]);
+            const existingLocations = existingReference.locations;
+            if (rawReference.index) {
+                const newLocation = rawReference.index;
+                existingLocations.push(newLocation);
+                groupOfReferencesForFormatting.push(existingReference.referenceId + 1);
+            }
+        }
+        if (!recordExists(rawReference)) {
+            const newReference = {
+                referenceId: referenceLibrary.size,
+                locations: [rawReference.index],
+                referenceLength: rawReference[0].length,
+            };
+            referenceLibrary.set(rawReference[0], newReference);
+            groupOfReferencesForFormatting.push(newReference.referenceId + 1);
+        }
+        remainingText = inputText.slice(rawReference.index + rawReference[0].length + 1);
+        // startOfReferenceIndex = rawReference.index!;
+        identifyAdjacentReferences(remainingText);
+        referenceInstanceCount++;
+    }
+    const referencesLeftToFormat = groupOfReferencesForFormatting.length > 0 ? true : false;
+    if (referencesLeftToFormat) {
+        clearReferenceGroupAndSaySomething();
+    }
+    console.log(referenceLibrary);
+    console.log(finalText);
+}
+// Helper Functions
+function identifyReferences(text) {
+    return text.matchAll(REFERENCE_IDENTIFICATION_REGEX);
 }
 function recordExists(rawReference) {
     const reference = rawReference[0];
@@ -21,76 +73,84 @@ function recordExists(rawReference) {
         return true;
     }
 }
-function referenceExtractor(inputText) {
-    // Run the text through some regex
-    const rawReferences = identifyReferences(inputText);
-    // rawReference shape
-    //   [
-    //   '[Auchinleck 1992]',
-    //   'Auchinleck 1992',
-    //   index: 521,
-    //   input: "Mollitia quasi dolorem molestiae ut est voluptates quidem.[Fitt 2011] Natus sit dolore eveniet modi dolores dolore.[Auchinleck 1992] [Wix 2012] Voluptatem vel vel officiis recusandae hic. Sit esse eaque quisquam provident odit et quis nostrum. Dolores ea maiores.[Elcom 2004] [Lindroos 2007] [O'Sheeryne 2004] Iste aut deleniti maiores aliquam asperiores illum consectetur.[Lindroos 2007] [Webben 1987] [Smithin 2004] [Brambill 2001] Ut in et voluptatem sit odit laborum. Veritatis aut reiciendis quasi mollitia esse qui.[Auchinleck 1992] [Wix 2012] [Lindroos 2007] [Smithin 2004] [Brambill 2001] [Varvell 2011]",
-    //   groups: undefined
-    //   ]
-    // Check for adjacent references here 
-    // Build a collection of references and their locations
-    for (const rawReference of rawReferences) {
-        if (recordExists(rawReference)) {
-            const existingLocations = referenceLibrary.get(rawReference[0]).locations;
-            if (rawReference.index) {
-                const newLocation = rawReference.index;
-                existingLocations.push(newLocation);
-            }
-        }
-        if (!recordExists(rawReference)) {
-            const newReference = {
-                referenceId: referenceLibrary.size,
-                locations: [rawReference.index],
-                referenceLength: rawReference[0].length
-            };
-            referenceLibrary.set(rawReference[0], newReference);
-        }
-        remainingText = inputText.slice(rawReference.index + rawReference[0].length + 1);
-        identifyAdjacentReferences(remainingText);
-        referenceInstanceCount++;
-    }
-    const referencesLeftToFormat = groupOfReferencesForFormatting.length > 0 ? true : false;
-    if (referencesLeftToFormat) {
-        console.log(groupOfReferencesForFormatting);
-        groupOfReferencesForFormatting = [];
-    }
-    console.log(referenceLibrary);
-}
 function identifyAdjacentReferences(string) {
     if (!string) {
         return;
     }
     if (!isOpenSquareBracket(string[0])) {
         console.log("The next character was not a square bracket");
-        groupOfReferencesForFormatting.push(referenceInstanceCount);
         clearReferenceGroupAndSaySomething();
-    }
-    if (isOpenSquareBracket(string[0])) {
-        console.log("The next character was a square bracket");
-        groupOfReferencesForFormatting.push(referenceInstanceCount);
     }
 }
 function clearReferenceGroupAndSaySomething() {
-    console.log(groupOfReferencesForFormatting);
+    if (referenceInstanceCount === 0) {
+        startOfSectionIndex = 0;
+        startOfReferenceIndex = referenceInstanceLibrary.get(1).index;
+    }
+    else {
+        const previousReference = referenceInstanceLibrary.get(lastReferenceToBeCleared);
+        const endOfPreviousReference = previousReference.index + previousReference.nameYear.length;
+        startOfSectionIndex = endOfPreviousReference;
+        startOfReferenceIndex = referenceInstanceLibrary.get(lastReferenceToBeCleared + 1).index;
+    }
+    outputText = inputText.slice(startOfSectionIndex, startOfReferenceIndex);
+    finalText = finalText.concat(outputText);
+    const formattedGroup = formatGroupedReferences(groupOfReferencesForFormatting);
+    finalText = finalText.concat(`(${formattedGroup})`);
     groupOfReferencesForFormatting = [];
-    console.log("Doing something!");
+    lastReferenceToBeCleared = referenceInstanceCount + 1;
 }
-//   // TODO:
-//   // For each reference, check if the character after index + plus character length meets the following condition
-//  // If white space, check next character, 
-//      If not whitespace, is an open square bracket? If yes, Add it to the group for fromatting, mark instance as having been accounted for
-//      If not whitespace, is any other character => format anything that is already in the group for formatting. 
-// }
 function isWhiteSpace(str) {
     return str.match(/\s/);
 }
 function isOpenSquareBracket(str) {
     return str.match(/[[]/);
 }
+// WIPPPPP
+function formatGroupedReferences(groupOfReferencesForFormatting) {
+    if (groupOfReferencesForFormatting.length === 1 ||
+        groupOfReferencesForFormatting.length === 2) {
+        return groupOfReferencesForFormatting.toString();
+    }
+    else if (groupOfReferencesForFormatting.length > 2) {
+        let miniOutputString = "";
+        let numbersInDashedGroup = [];
+        for (let i = 0; i < groupOfReferencesForFormatting.length; i++) {
+            // Handle end of range situations 
+            if (i + 1 === groupOfReferencesForFormatting.length) {
+                if (groupOfReferencesForFormatting[i] - groupOfReferencesForFormatting[i - 1] === 1) {
+                    numbersInDashedGroup.push(groupOfReferencesForFormatting[i]);
+                    miniOutputString = miniOutputString.concat(`${numbersInDashedGroup[0]}-${numbersInDashedGroup[numbersInDashedGroup.length - 1]}`);
+                    numbersInDashedGroup = [];
+                }
+                else if (groupOfReferencesForFormatting[i] - groupOfReferencesForFormatting[i - 1] > 1) {
+                    // Format the numbersInDashedGroup 
+                    miniOutputString = miniOutputString.concat(numbersInDashedGroup.toString());
+                }
+                // Handle in range situations
+            }
+            else if (i + 1 < groupOfReferencesForFormatting.length) {
+                // Next reference is only one more than current reference
+                if (groupOfReferencesForFormatting[i + 1] - groupOfReferencesForFormatting[i] === 1) {
+                    numbersInDashedGroup.push(groupOfReferencesForFormatting[i]);
+                }
+                // Next reference is more than one more than current reference
+                if (groupOfReferencesForFormatting[i + 1] - groupOfReferencesForFormatting[i] > 1) {
+                    numbersInDashedGroup.push(groupOfReferencesForFormatting[i]);
+                    if (numbersInDashedGroup.length > 2) {
+                        miniOutputString = miniOutputString.concat(`${numbersInDashedGroup[0]}-${numbersInDashedGroup[numbersInDashedGroup.length - 1]},`);
+                        numbersInDashedGroup = [];
+                    }
+                    else if (numbersInDashedGroup.length <= 2) {
+                        miniOutputString = miniOutputString.concat(`${numbersInDashedGroup.toString()},`);
+                        numbersInDashedGroup = [];
+                    }
+                }
+            }
+        }
+        return miniOutputString;
+    }
+}
 referenceExtractor(inputText);
-// textFormatter(inputText);
+// Improvements
+// - Strip all whitespace out to make identifying references more robust.
