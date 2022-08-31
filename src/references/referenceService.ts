@@ -1,20 +1,18 @@
 import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
 export class referenceService {
-  constructor(
-    // Collections of references
-    private referenceLibrary = new Map(),
-    private referenceInstanceLibrary = new Map(),
-    private arrayOfRefsForFormatting: number[] = [],
-    // Trackers
-    private refInstanceCount: number = 0,
-    private lastRefToBeFormatted: number = 0,
-    // Output strings
-    private finalText: string = "",
-    private inputText: string = "",
-    // Regex
-    private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
-  ) {}
+   // Collections of references
+   private referenceLibrary = new Map();
+   private referenceInstanceLibrary = new Map();
+   private arrayOfRefsForFormatting: number[] = [];
+   // Trackers
+   private refInstanceCount: number = 0;
+   private lastRefToBeFormatted: number = 0;
+   // Output strings
+   private finalText: string = "";
+   private inputText: string = "";
+   // Regex
+   private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
 
   public post(inputBody: string): IFormattedText {
     this.inputText = inputBody;

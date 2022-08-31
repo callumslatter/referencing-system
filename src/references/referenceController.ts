@@ -10,7 +10,6 @@ import { referenceService } from "./referenceService";
 
 @Route("formatter")
 export class referenceController extends Controller {
-
   @Post()
   @SuccessResponse("201", "Created")
   public async formatText(@Body() requestBody: any): Promise<IFormattedText> {
