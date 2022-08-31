@@ -1,23 +1,18 @@
 import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
-export class referenceSystemService {
+export class referenceService {
   constructor(
+    // Collections of references
     private referenceLibrary = new Map(),
     private referenceInstanceLibrary = new Map(),
-
-    // Keep track of groups of references
     private arrayOfRefsForFormatting: number[] = [],
-
-    // Keep track of the instance being worked on
+    // Trackers
     private refInstanceCount: number = 0,
-
     private lastRefToBeFormatted: number = 0,
-
+    // Output strings
     private finalText: string = "",
-
     private inputText: string = "",
-
-    // REGEX
+    // Regex
     private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
   ) {}
 
@@ -29,10 +24,6 @@ export class referenceSystemService {
       references: output.referenceList,
     };
   }
-
-  //   // INPUT
-  //   inputText: string =
-  //     "Mollitia quasi dolorem molestiae ut est voluptates quidem.[Fitt 2011] Natus sit dolore eveniet modi dolores dolore.[Auchinleck 1992] [Wix 2012] Voluptatem vel vel officiis recusandae hic. Sit esse eaque quisquam provident odit et quis nostrum. Dolores ea maiores.[Elcom 2004] [Lindroos 2007] [O'Sheeryne 2004] Iste aut deleniti maiores aliquam asperiores illum consectetur.[Lindroos 2007] [Webben 1987] [Smithin 2004] [Brambill 2001] Ut in et voluptatem sit odit laborum. Veritatis aut reiciendis quasi mollitia esse qui.[Auchinleck 1992] [Wix 2012] [Lindroos 2007] [Smithin 2004] [Brambill 2001] [Varvell 2011]";
 
   refFormatter(inputText: string) {
     let remainingText: string = "";
@@ -79,7 +70,7 @@ export class referenceSystemService {
       this.arrayOfRefsForFormatting.length > 0 ? true : false;
 
     if (referencesLeftToFormat) {
-      this.concatReferences();
+      this.concatReferencesToFinalOutput();
     }
     let referenceList = this.createReferenceList(this.referenceLibrary);
     return { text: this.finalText, referenceList: referenceList };
@@ -104,11 +95,11 @@ export class referenceSystemService {
       return;
     }
     if (!this.isOpenSquareBracket(string[0])) {
-      this.concatReferences();
+      this.concatReferencesToFinalOutput();
     }
   }
 
-  concatReferences() {
+  concatReferencesToFinalOutput() {
     let startOfReferenceIndex: number = 0;
     let startOfSectionIndex: number = 0;
     // Establish indexes for slice functions
@@ -126,16 +117,18 @@ export class referenceSystemService {
         this.lastRefToBeFormatted + 1
       ).index;
     }
-    //
+    // Obtains the text between groups of references and adds it to output
     let textBetweenReferences = this.inputText.slice(
       startOfSectionIndex,
       startOfReferenceIndex
     );
     this.finalText = this.finalText.concat(textBetweenReferences);
+    // Add formatted group of references to output
     const formattedReferences = this.formatGroupOfReferences(
       this.arrayOfRefsForFormatting
     );
     this.finalText = this.finalText.concat(`(${formattedReferences})`);
+    // Reset array of refs and track last amended position
     this.arrayOfRefsForFormatting = [];
     this.lastRefToBeFormatted = this.refInstanceCount + 1;
   }

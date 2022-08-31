@@ -6,14 +6,14 @@ import {
   SuccessResponse,
 } from "tsoa";
 import { IFormattedText } from "./reference";
-import { referenceSystemService } from "./referenceSystemService";
+import { referenceService } from "./referenceService";
 
 @Route("formatter")
-export class referenceSystemController extends Controller {
+export class referenceController extends Controller {
 
   @Post()
   @SuccessResponse("201", "Created")
   public async formatText(@Body() requestBody: any): Promise<IFormattedText> {
-    return new referenceSystemService().post(requestBody.inputText);
+    return new referenceService().post(requestBody.inputText);
   }
 }
