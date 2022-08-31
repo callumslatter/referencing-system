@@ -163,9 +163,7 @@ export class ReferenceService {
           if (thisRef - prevRef === 1) {
             refsInDashedGroup.push(thisRef);
             outputString = outputString.concat(
-              `${refsInDashedGroup[0]}-${
-                refsInDashedGroup[refsInDashedGroup.length - 1]
-              }`
+              `${refsInDashedGroup[0]}-${thisRef}`
             );
             refsInDashedGroup = [];
             // If final ref Id is more than 1 more than penultimate...
