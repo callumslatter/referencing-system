@@ -8,7 +8,7 @@ referencing system.
 - [Brief](#brief)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Notes] (#notes)
+- [Notes](#notes)
 
 ## Brief 
 
