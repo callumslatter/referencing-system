@@ -2,8 +2,8 @@ import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
 export class ReferenceService {
    // Collections of references
-   private referenceLibrary = new Map();
-   private referenceInstanceLibrary = new Map();
+   private referenceMap = new Map();
+   private referenceInstanceMap = new Map();
    private arrayOfRefsForFormatting: number[] = [];
    // Trackers
    private refInstanceCount: number = 0;
@@ -34,7 +34,7 @@ export class ReferenceService {
         nameYear: instance[0],
         index: instance.index!,
       };
-      this.referenceInstanceLibrary.set(instanceCounter, newRefInstance);
+      this.referenceInstanceMap.set(instanceCounter, newRefInstance);
       instanceCounter++;
     }
 
@@ -43,18 +43,18 @@ export class ReferenceService {
     const rawRefs = this.identifyReferences(inputText);
     for (const rawRef of rawRefs) {
       if (this.recordExists(rawRef)) {
-        const existingRef = this.referenceLibrary.get(rawRef[0]);
+        const existingRef = this.referenceMap.get(rawRef[0]);
         const existingLocations = existingRef.locations;
         const newLocation = rawRef.index;
         existingLocations.push(newLocation);
         this.arrayOfRefsForFormatting.push(existingRef.referenceId);
       } else if (!this.recordExists(rawRef)) {
         const newRef: IReference = {
-          referenceId: this.referenceLibrary.size + 1,
+          referenceId: this.referenceMap.size + 1,
           locations: [rawRef.index!],
           referenceLength: rawRef[0].length,
         };
-        this.referenceLibrary.set(rawRef[0], newRef);
+        this.referenceMap.set(rawRef[0], newRef);
         this.arrayOfRefsForFormatting.push(newRef.referenceId);
       }
       remainingText = inputText.slice(rawRef.index! + rawRef[0].length + 1);
@@ -70,7 +70,7 @@ export class ReferenceService {
     if (referencesLeftToFormat) {
       this.concatReferencesToFinalOutput();
     }
-    let referenceList = this.createReferenceList(this.referenceLibrary);
+    let referenceList = this.createReferenceList(this.referenceMap);
     return { text: this.finalText, referenceList: referenceList };
   }
 
@@ -81,7 +81,7 @@ export class ReferenceService {
 
   recordExists(rawRef: RegExpMatchArray) {
     const reference = rawRef[0];
-    if (this.referenceLibrary.get(reference) === undefined) {
+    if (this.referenceMap.get(reference) === undefined) {
       return false;
     } else {
       return true;
@@ -103,15 +103,15 @@ export class ReferenceService {
     // Establish indexes for slice functions
     if (this.refInstanceCount === 0) {
       startOfSectionIndex = 0;
-      startOfReferenceIndex = this.referenceInstanceLibrary.get(1).index;
+      startOfReferenceIndex = this.referenceInstanceMap.get(1).index;
     } else {
-      const previousReference = this.referenceInstanceLibrary.get(
+      const previousReference = this.referenceInstanceMap.get(
         this.lastRefToBeFormatted
       );
       const endOfPreviousReference =
         previousReference.index + previousReference.nameYear.length;
       startOfSectionIndex = endOfPreviousReference;
-      startOfReferenceIndex = this.referenceInstanceLibrary.get(
+      startOfReferenceIndex = this.referenceInstanceMap.get(
         this.lastRefToBeFormatted + 1
       ).index;
     }
@@ -131,9 +131,9 @@ export class ReferenceService {
     this.lastRefToBeFormatted = this.refInstanceCount + 1;
   }
 
-  createReferenceList(referenceLibrary: Map<any, any>) {
+  createReferenceList(referenceMap: Map<any, any>) {
     let refsOutputArray: string[] = [];
-    const references = referenceLibrary.entries();
+    const references = referenceMap.entries();
     for (const reference of references) {
       const debracketedReference = reference[0].slice(
         1,
