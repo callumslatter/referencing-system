@@ -117,7 +117,6 @@ Returns:
 ## Notes
 
 There are a number of obvious improvements to make: 
-- Increase the strictness of the settings in tsconfig.json
 - Add tests
 - Make the reference identifier a little bit more robust.
     - Currently the API requires that the references are followed immediately by a single space
