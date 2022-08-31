@@ -145,8 +145,8 @@ export class ReferenceService {
   }
 
   formatGroupOfReferences(arrayOfRefsForFormatting: number[]) {
-    arrayOfRefsForFormatting.sort(function (a, b) {
-      return a - b;
+    arrayOfRefsForFormatting.sort(function (a, z) {
+      return a - z;
     });
     // If less than three references, output references in current state
     if (this.arrayOfRefsForFormatting.length <= 2) {
