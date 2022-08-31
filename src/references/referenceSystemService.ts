@@ -24,7 +24,6 @@ export class referenceSystemService {
   public post(inputBody: string): IFormattedText {
     this.inputText = inputBody;
     const output = this.refFormatter(this.inputText);
-    console.log(output);
     return {
       formattedText: output.text,
       references: output.referenceList,
@@ -143,14 +142,12 @@ export class referenceSystemService {
 
   createReferenceList(referenceLibrary: Map<any, any>) {
     let refsOutputArray: string[] = [];
-    console.log("Reference list:");
     const references = referenceLibrary.entries();
     for (const reference of references) {
       const debracketedReference = reference[0].slice(
         1,
         reference[0].length - 1
       );
-      console.log(`${reference[1].referenceId}. ${debracketedReference}`);
       refsOutputArray.push(
         `${reference[1].referenceId}. ${debracketedReference}`
       );

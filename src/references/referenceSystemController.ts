@@ -1,18 +1,14 @@
-import { request } from "http";
 import {
   Body,
   Controller,
-  Get,
-  Path,
   Post,
-  Query,
   Route,
   SuccessResponse,
 } from "tsoa";
 import { IFormattedText } from "./reference";
 import { referenceSystemService } from "./referenceSystemService";
 
-@Route("references")
+@Route("formatter")
 export class referenceSystemController extends Controller {
 
   @Post()
