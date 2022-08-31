@@ -1,18 +1,18 @@
 import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
 export class ReferenceService {
-   // Collections of references
-   private referenceMap = new Map();
-   private referenceInstanceMap = new Map();
-   private arrayOfRefsForFormatting: number[] = [];
-   // Trackers
-   private refInstanceCount = 0;
-   private lastRefToBeFormatted = 0;
-   // Output strings
-   private finalText: string = "";
-   private inputText: string = "";
-   // Regex
-   private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
+  // Collections of references
+  private referenceMap = new Map();
+  private referenceInstanceMap = new Map();
+  private arrayOfRefsForFormatting: number[] = [];
+  // Trackers
+  private refInstanceCount = 0;
+  private lastRefToBeFormatted = 0;
+  // Output strings
+  private finalText: string = "";
+  private inputText: string = "";
+  // Regex
+  private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g;
 
   public formatText(inputBody: string): IFormattedText {
     this.inputText = inputBody;
@@ -48,7 +48,7 @@ export class ReferenceService {
         const newLocation = rawRef.index;
         existingLocations.push(newLocation);
         this.arrayOfRefsForFormatting.push(existingRef.referenceId);
-      } else if (!this.recordExists(rawRef)) {
+      } else {
         const newRef: IReference = {
           referenceId: this.referenceMap.size + 1,
           locations: [rawRef.index!],
@@ -64,8 +64,7 @@ export class ReferenceService {
       this.refInstanceCount++;
     }
 
-    const referencesLeftToFormat =
-      this.arrayOfRefsForFormatting.length > 0;
+    const referencesLeftToFormat = this.arrayOfRefsForFormatting.length > 0;
 
     if (referencesLeftToFormat) {
       this.concatReferencesToFinalOutput();
@@ -146,14 +145,14 @@ export class ReferenceService {
   }
 
   formatGroupOfReferences(arrayOfRefsForFormatting: number[]) {
-    arrayOfRefsForFormatting.sort(function(a,b){return a-b})
+    arrayOfRefsForFormatting.sort(function (a, b) {
+      return a - b;
+    });
     // If less than three references, output references in current state
-    if (
-      this.arrayOfRefsForFormatting.length === 1 ||
-      this.arrayOfRefsForFormatting.length === 2
-    ) {
+    if (this.arrayOfRefsForFormatting.length <= 2) {
       return this.arrayOfRefsForFormatting.toString();
-    } else if (this.arrayOfRefsForFormatting.length > 2) {
+    }
+    {
       let outputString = "";
       let refsInDashedGroup: number[] = [];
       for (let i = 0; i < this.arrayOfRefsForFormatting.length; i++) {
