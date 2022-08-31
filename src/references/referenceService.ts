@@ -6,8 +6,8 @@ export class ReferenceService {
    private referenceInstanceMap = new Map();
    private arrayOfRefsForFormatting: number[] = [];
    // Trackers
-   private refInstanceCount: number = 0;
-   private lastRefToBeFormatted: number = 0;
+   private refInstanceCount = 0;
+   private lastRefToBeFormatted = 0;
    // Output strings
    private finalText: string = "";
    private inputText: string = "";
@@ -23,7 +23,7 @@ export class ReferenceService {
     };
   }
 
-  refFormatter(inputText: string) {
+  private refFormatter(inputText: string) {
     let remainingText: string = "";
     let instanceCounter = 1;
 
@@ -70,8 +70,8 @@ export class ReferenceService {
     if (referencesLeftToFormat) {
       this.concatReferencesToFinalOutput();
     }
-    let referenceList = this.createReferenceList(this.referenceMap);
-    return { text: this.finalText, referenceList: referenceList };
+    const referenceList = this.createReferenceList(this.referenceMap);
+    return { text: this.finalText, referenceList };
   }
 
   // Helper Functions
@@ -127,7 +127,7 @@ export class ReferenceService {
   }
 
   createReferenceList(referenceMap: Map<any, any>) {
-    let refsOutputArray: string[] = [];
+    const refsOutputArray: string[] = [];
     const references = referenceMap.entries();
     for (const reference of references) {
       const debracketedReference = reference[0].slice(
@@ -139,10 +139,6 @@ export class ReferenceService {
       );
     }
     return refsOutputArray;
-  }
-
-  isWhiteSpace(str: string) {
-    return str.match(/\s/);
   }
 
   isOpenSquareBracket(str: string) {
