@@ -65,7 +65,7 @@ export class ReferenceService {
     }
 
     const referencesLeftToFormat =
-      this.arrayOfRefsForFormatting.length > 0 ? true : false;
+      this.arrayOfRefsForFormatting.length > 0;
 
     if (referencesLeftToFormat) {
       this.concatReferencesToFinalOutput();
@@ -80,12 +80,7 @@ export class ReferenceService {
   }
 
   recordExists(rawRef: RegExpMatchArray) {
-    const reference = rawRef[0];
-    if (this.referenceMap.get(reference) === undefined) {
-      return false;
-    } else {
-      return true;
-    }
+    return this.referenceMap.get(rawRef[0]) !== undefined;
   }
 
   identifyAdjacentReferences(string: string) {
