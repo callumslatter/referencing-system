@@ -3,6 +3,12 @@
 Referencer is an API written in TypeScript that takes texts that contain academic references, and applies a 
 referencing system. 
 
+#### Contents
+
+- [Brief](#brief)
+- [Installation](#installation)
+- [Usage](#usage)
+
 ## Brief 
 
 Given the text below, extract the references and apply a numeric referencing system.
