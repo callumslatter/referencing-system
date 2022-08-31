@@ -9,10 +9,6 @@ interface IReferenceInstance {
   index: number;
 }
 
-// export class ReferencingSystemService {
-
-// }
-
 const referenceLibrary = new Map();
 const referenceInstanceLibrary = new Map();
 
@@ -108,7 +104,7 @@ function recordExists(rawRef: RegExpMatchArray) {
   }
 }
 
-function identifyAdjacentReferences(string) {
+function identifyAdjacentReferences(string: string) {
   if (!string) {
     return;
   }
@@ -146,7 +142,7 @@ function concatReferences() {
   lastRefToBeFormatted = refInstanceCount + 1;
 }
 
-function createReferenceList(referenceLibrary) {
+function createReferenceList(referenceLibrary: Map<any, any>) {
   console.log("Reference list:")
   const references = referenceLibrary.entries()
   for (const reference of references) {
@@ -155,11 +151,11 @@ function createReferenceList(referenceLibrary) {
   }
 }
 
-function isWhiteSpace(str) {
+function isWhiteSpace(str: string) {
   return str.match(/\s/);
 }
 
-function isOpenSquareBracket(str) {
+function isOpenSquareBracket(str: string) {
   return str.match(/[[]/);
 }
 
@@ -207,7 +203,6 @@ function formatGroupOfReferences(arrayOfRefsForFormatting: number[]) {
     return outputString;
   }
 }
-
 
 refFormatter(inputText);
 
