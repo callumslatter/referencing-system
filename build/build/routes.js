@@ -12,7 +12,7 @@ const models = {
     "IFormattedText": {
         "dataType": "refObject",
         "properties": {
-            "body": { "dataType": "string", "required": true },
+            "formattedText": { "dataType": "string", "required": true },
             "references": { "dataType": "array", "array": { "dataType": "string" }, "required": true },
         },
         "additionalProperties": false,
@@ -26,24 +26,9 @@ function RegisterRoutes(app) {
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
-    app.get('/references', ...((0, runtime_1.fetchMiddlewares)(referenceSystemController_1.referenceSystemController)), ...((0, runtime_1.fetchMiddlewares)(referenceSystemController_1.referenceSystemController.prototype.sayHello)), function referenceSystemController_sayHello(request, response, next) {
-        const args = {};
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        let validatedArgs = [];
-        try {
-            validatedArgs = getValidatedArgs(args, request, response);
-            const controller = new referenceSystemController_1.referenceSystemController();
-            const promise = controller.sayHello.apply(controller, validatedArgs);
-            promiseHandler(controller, promise, response, undefined, next);
-        }
-        catch (err) {
-            return next(err);
-        }
-    });
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     app.post('/references', ...((0, runtime_1.fetchMiddlewares)(referenceSystemController_1.referenceSystemController)), ...((0, runtime_1.fetchMiddlewares)(referenceSystemController_1.referenceSystemController.prototype.formatText)), function referenceSystemController_formatText(request, response, next) {
         const args = {
-            requestBody: { "in": "body", "name": "requestBody", "required": true, "dataType": "string" },
+            requestBody: { "in": "body", "name": "requestBody", "required": true, "dataType": "any" },
         };
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         let validatedArgs = [];

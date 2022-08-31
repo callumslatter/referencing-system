@@ -14,10 +14,6 @@ import { referenceSystemService } from "./referenceSystemService";
 
 @Route("references")
 export class referenceSystemController extends Controller {
-  @Get()
-  public async sayHello(): Promise<IFormattedText> {
-    return new referenceSystemService().get();
-  }
 
   @Post()
   @SuccessResponse("201", "Created")

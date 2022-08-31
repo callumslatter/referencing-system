@@ -25,31 +25,18 @@ exports.referenceSystemController = void 0;
 const tsoa_1 = require("tsoa");
 const referenceSystemService_1 = require("./referenceSystemService");
 let referenceSystemController = class referenceSystemController extends tsoa_1.Controller {
-    sayHello() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new referenceSystemService_1.referenceSystemService().get();
-        });
-    }
     formatText(requestBody) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.setStatus(201);
-            console.log("Literally anything!");
-            return new referenceSystemService_1.referenceSystemService().post(requestBody);
+            return new referenceSystemService_1.referenceSystemService().post(requestBody.inputText);
         });
     }
 };
-__decorate([
-    (0, tsoa_1.Get)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], referenceSystemController.prototype, "sayHello", null);
 __decorate([
     (0, tsoa_1.Post)(),
     (0, tsoa_1.SuccessResponse)("201", "Created"),
     __param(0, (0, tsoa_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], referenceSystemController.prototype, "formatText", null);
 referenceSystemController = __decorate([
