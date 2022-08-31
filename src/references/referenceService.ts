@@ -1,6 +1,6 @@
 import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
-export class referenceService {
+export class ReferenceService {
    // Collections of references
    private referenceLibrary = new Map();
    private referenceInstanceLibrary = new Map();
@@ -14,7 +14,7 @@ export class referenceService {
    // Regex
    private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
 
-  public post(inputBody: string): IFormattedText {
+  public formatText(inputBody: string): IFormattedText {
     this.inputText = inputBody;
     const output = this.refFormatter(this.inputText);
     return {
