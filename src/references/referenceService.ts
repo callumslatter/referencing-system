@@ -145,7 +145,7 @@ export class ReferenceService {
   }
 
   formatGroupOfReferences(arrayOfRefsForFormatting: number[]) {
-    arrayOfRefsForFormatting.sort(function (a, z) {
+    this.arrayOfRefsForFormatting.sort(function (a, z) {
       return a - z;
     });
     // If less than three references, output references in current state
@@ -156,15 +156,18 @@ export class ReferenceService {
       let outputString = "";
       let refsInDashedGroup: number[] = [];
       for (let i = 0; i < this.arrayOfRefsForFormatting.length; i++) {
+        const thisRef = this.arrayOfRefsForFormatting[i];
+        const nextRef = this.arrayOfRefsForFormatting[i + 1];
+        const prevRef = this.arrayOfRefsForFormatting[i - 1];
         // This 'If' clause handles final ref in arrayOfRefs
         if (i + 1 === this.arrayOfRefsForFormatting.length) {
           // If final ref Id is only 1 more than penultimate...
           if (
-            this.arrayOfRefsForFormatting[i] -
-              this.arrayOfRefsForFormatting[i - 1] ===
+            thisRef -
+              prevRef ===
             1
           ) {
-            refsInDashedGroup.push(this.arrayOfRefsForFormatting[i]);
+            refsInDashedGroup.push(thisRef);
             outputString = outputString.concat(
               `${refsInDashedGroup[0]}-${
                 refsInDashedGroup[refsInDashedGroup.length - 1]
@@ -173,8 +176,8 @@ export class ReferenceService {
             refsInDashedGroup = [];
             // If final ref Id is more than 1 more than penultimate...
           } else if (
-            this.arrayOfRefsForFormatting[i] -
-              this.arrayOfRefsForFormatting[i - 1] >
+            thisRef -
+              prevRef >
             1
           ) {
             outputString = outputString.concat(refsInDashedGroup.toString());
@@ -183,19 +186,19 @@ export class ReferenceService {
         } else if (i + 1 < this.arrayOfRefsForFormatting.length) {
           // Next reference is only one more than current reference
           if (
-            this.arrayOfRefsForFormatting[i + 1] -
-              this.arrayOfRefsForFormatting[i] ===
+            nextRef -
+              thisRef ===
             1
           ) {
             refsInDashedGroup.push(arrayOfRefsForFormatting[i]);
           }
           // Next reference is more than one more than current reference
           if (
-            this.arrayOfRefsForFormatting[i + 1] -
-              this.arrayOfRefsForFormatting[i] >
+            nextRef -
+              thisRef >
             1
           ) {
-            refsInDashedGroup.push(this.arrayOfRefsForFormatting[i]);
+            refsInDashedGroup.push(thisRef);
             if (refsInDashedGroup.length > 2) {
               outputString = outputString.concat(
                 `${refsInDashedGroup[0]}-${
