@@ -74,15 +74,15 @@ export class ReferenceService {
   }
 
   // Helper Functions
-  identifyReferences(text: string) {
+  private identifyReferences(text: string) {
     return text.matchAll(this.REFERENCE_IDENTIFICATION_REGEX);
   }
 
-  recordExists(rawRef: RegExpMatchArray) {
+  private recordExists(rawRef: RegExpMatchArray) {
     return this.referenceMap.get(rawRef[0]) !== undefined;
   }
 
-  identifyAdjacentReferences(string: string) {
+  private identifyAdjacentReferences(string: string) {
     if (!string) {
       return;
     }
@@ -91,7 +91,7 @@ export class ReferenceService {
     }
   }
 
-  concatReferencesToFinalOutput() {
+  private concatReferencesToFinalOutput() {
     let startOfReferenceIndex: number = 0;
     let startOfSectionIndex: number = 0;
     // Establish indexes for slice functions
@@ -123,7 +123,7 @@ export class ReferenceService {
     this.lastRefToBeFormatted = this.refInstanceCount + 1;
   }
 
-  createReferenceList(referenceMap: Map<any, any>) {
+  private createReferenceList(referenceMap: Map<any, any>) {
     const refsOutputArray: string[] = [];
     const references = referenceMap.entries();
     for (const reference of references) {
@@ -138,11 +138,11 @@ export class ReferenceService {
     return refsOutputArray;
   }
 
-  isOpenSquareBracket(str: string) {
+  private isOpenSquareBracket(str: string) {
     return str.match(/[[]/);
   }
 
-  formatGroupOfReferences() {
+  private formatGroupOfReferences() {
     this.arrayOfRefsForFormatting.sort(function (a, z) {
       return a - z;
     });
