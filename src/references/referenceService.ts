@@ -1,141 +1,139 @@
 import { IFormattedText, IReferenceInstance, IReference } from "./reference";
 
-export class referenceService {
-  constructor(
-    // Collections of references
-    private referenceLibrary = new Map(),
-    private referenceInstanceLibrary = new Map(),
-    private arrayOfRefsForFormatting: number[] = [],
-    // Trackers
-    private refInstanceCount: number = 0,
-    private lastRefToBeFormatted: number = 0,
-    // Output strings
-    private finalText: string = "",
-    private inputText: string = "",
-    // Regex
-    private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g
-  ) {}
+export class ReferenceService {
+  // Collections of references
+  private referenceMap = new Map();
+  private referenceInstanceMap = new Map();
+  private arrayOfRefsForFormatting: number[] = [];
 
-  public post(inputBody: string): IFormattedText {
-    this.inputText = inputBody;
-    const output = this.refFormatter(this.inputText);
+  // TODO: Take this counter out of class scope and bring it into local scope
+  // Tracker
+  private lastRefToBeFormatted = 0;
+
+  // Regex
+  private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g;
+
+  public formatText(inputText: string): IFormattedText {
+    const output = this.refFormatter(inputText);
     return {
       formattedText: output.text,
       references: output.referenceList,
     };
   }
 
-  refFormatter(inputText: string) {
+  private refFormatter(inputText: string) {
     let remainingText: string = "";
-    let instanceCounter = 1;
+    let mapIndex = 1;
+    let refInstanceCount = 0;
+    let finalText = "";
 
     // Track where each reference occurs
-    const refInstance = this.identifyReferences(inputText);
+    const refInstance = Array.from(this.identifyReferences(inputText));
+    if (!refInstance) {
+      throw new Error("Something went wrong! No refInstances.")
+    }
     for (const instance of refInstance) {
+      if (instance.index === undefined) {
+        throw new Error("Something went wrong!")
+      }
       const newRefInstance: IReferenceInstance = {
         nameYear: instance[0],
-        index: instance.index!,
+        index: instance.index,
       };
-      this.referenceInstanceLibrary.set(instanceCounter, newRefInstance);
-      instanceCounter++;
+      this.referenceInstanceMap.set(mapIndex, newRefInstance);
+      mapIndex++;
     }
 
     // Build a collection of reference authors, indexes of their references, and length of each reference
     // Checks to see if there's a reference directly after the one currently being focused on
-    const rawRefs = this.identifyReferences(inputText);
-    for (const rawRef of rawRefs) {
-      if (this.recordExists(rawRef)) {
-        const existingRef = this.referenceLibrary.get(rawRef[0]);
+    for (const instance of refInstance) {
+      if (instance.index === undefined) {
+        throw new Error("Something went wrong! No instance.index.")
+      }
+      const existingRef = this.referenceMap.get(instance[0])
+      if (existingRef) {
         const existingLocations = existingRef.locations;
-        const newLocation = rawRef.index;
+        const newLocation = instance.index;
         existingLocations.push(newLocation);
         this.arrayOfRefsForFormatting.push(existingRef.referenceId);
-      } else if (!this.recordExists(rawRef)) {
+      } else {
         const newRef: IReference = {
-          referenceId: this.referenceLibrary.size + 1,
-          locations: [rawRef.index!],
-          referenceLength: rawRef[0].length,
+          referenceId: this.referenceMap.size + 1,
+          locations: [instance.index],
+          referenceLength: instance[0].length,
         };
-        this.referenceLibrary.set(rawRef[0], newRef);
+        this.referenceMap.set(instance[0], newRef);
         this.arrayOfRefsForFormatting.push(newRef.referenceId);
       }
-      remainingText = inputText.slice(rawRef.index! + rawRef[0].length + 1);
+      remainingText = inputText.slice(instance.index + instance[0].length + 1);
 
       // Check text immediately after the current reference. If nothing adjacent, format existing collection of references.
-      this.identifyAdjacentReferences(remainingText);
-      this.refInstanceCount++;
+      finalText = this.identifyAdjacentReferences(remainingText, inputText, refInstanceCount, finalText);
+      refInstanceCount++;
     }
 
-    const referencesLeftToFormat =
-      this.arrayOfRefsForFormatting.length > 0 ? true : false;
+    const referencesLeftToFormat = this.arrayOfRefsForFormatting.length > 0;
 
     if (referencesLeftToFormat) {
-      this.concatReferencesToFinalOutput();
+      finalText = this.concatReferencesToFinalOutput(inputText, finalText, refInstanceCount);
     }
-    let referenceList = this.createReferenceList(this.referenceLibrary);
-    return { text: this.finalText, referenceList: referenceList };
+    const referenceList = this.createReferenceList(this.referenceMap);
+    return { text: finalText, referenceList };
   }
 
   // Helper Functions
-  identifyReferences(text: string) {
+  private identifyReferences(text: string) {
     return text.matchAll(this.REFERENCE_IDENTIFICATION_REGEX);
   }
 
-  recordExists(rawRef: RegExpMatchArray) {
-    const reference = rawRef[0];
-    if (this.referenceLibrary.get(reference) === undefined) {
-      return false;
-    } else {
-      return true;
+  private identifyAdjacentReferences(remainingText: string, inputText: string, refInstanceCount: number, finalText: string) {
+    if (!remainingText) {
+      return finalText;
     }
+    if (!this.isOpenSquareBracket(remainingText[0])) {
+      finalText = this.concatReferencesToFinalOutput(inputText, finalText, refInstanceCount);
+      return finalText
+    }
+    return finalText
   }
 
-  identifyAdjacentReferences(string: string) {
-    if (!string) {
-      return;
-    }
-    if (!this.isOpenSquareBracket(string[0])) {
-      this.concatReferencesToFinalOutput();
-    }
-  }
-
-  concatReferencesToFinalOutput() {
+  private concatReferencesToFinalOutput(inputText: string, finalText: string, refInstanceCount: number) {
     let startOfReferenceIndex: number = 0;
     let startOfSectionIndex: number = 0;
+  
     // Establish indexes for slice functions
-    if (this.refInstanceCount === 0) {
+    if (refInstanceCount === 0) {
       startOfSectionIndex = 0;
-      startOfReferenceIndex = this.referenceInstanceLibrary.get(1).index;
+      startOfReferenceIndex = this.referenceInstanceMap.get(1).index;
     } else {
-      const previousReference = this.referenceInstanceLibrary.get(
+      const previousReference = this.referenceInstanceMap.get(
         this.lastRefToBeFormatted
       );
       const endOfPreviousReference =
         previousReference.index + previousReference.nameYear.length;
       startOfSectionIndex = endOfPreviousReference;
-      startOfReferenceIndex = this.referenceInstanceLibrary.get(
+      startOfReferenceIndex = this.referenceInstanceMap.get(
         this.lastRefToBeFormatted + 1
       ).index;
     }
     // Obtains the text between groups of references and adds it to output
-    let textBetweenReferences = this.inputText.slice(
+    let textBetweenReferences = inputText.slice(
       startOfSectionIndex,
       startOfReferenceIndex
     );
-    this.finalText = this.finalText.concat(textBetweenReferences);
+    finalText = finalText.concat(textBetweenReferences);
     // Add formatted group of references to output
-    const formattedReferences = this.formatGroupOfReferences(
-      this.arrayOfRefsForFormatting
-    );
-    this.finalText = this.finalText.concat(`(${formattedReferences})`);
+    const formattedReferences = this.formatGroupOfReferences();
+    finalText = finalText.concat(`(${formattedReferences})`);
     // Reset array of refs and track last amended position
     this.arrayOfRefsForFormatting = [];
-    this.lastRefToBeFormatted = this.refInstanceCount + 1;
+    this.lastRefToBeFormatted = refInstanceCount + 1;
+    return finalText
   }
 
-  createReferenceList(referenceLibrary: Map<any, any>) {
-    let refsOutputArray: string[] = [];
-    const references = referenceLibrary.entries();
+  private createReferenceList(referenceMap: Map<any, any>) {
+    const refsOutputArray: string[] = [];
+    const references = referenceMap.entries();
     for (const reference of references) {
       const debracketedReference = reference[0].slice(
         1,
@@ -148,66 +146,53 @@ export class referenceService {
     return refsOutputArray;
   }
 
-  isWhiteSpace(str: string) {
-    return str.match(/\s/);
-  }
-
-  isOpenSquareBracket(str: string) {
+  private isOpenSquareBracket(str: string) {
     return str.match(/[[]/);
   }
 
-  formatGroupOfReferences(arrayOfRefsForFormatting: number[]) {
-    arrayOfRefsForFormatting.sort(function(a,b){return a-b})
+  private formatGroupOfReferences() {
+    this.arrayOfRefsForFormatting.sort(function (a, z) {
+      return a - z;
+    });
     // If less than three references, output references in current state
-    if (
-      this.arrayOfRefsForFormatting.length === 1 ||
-      this.arrayOfRefsForFormatting.length === 2
-    ) {
+    if (this.arrayOfRefsForFormatting.length <= 2) {
       return this.arrayOfRefsForFormatting.toString();
-    } else if (this.arrayOfRefsForFormatting.length > 2) {
+    }
+    {
       let outputString = "";
       let refsInDashedGroup: number[] = [];
       for (let i = 0; i < this.arrayOfRefsForFormatting.length; i++) {
+        const thisRef = this.arrayOfRefsForFormatting[i];
+        const nextRef = this.arrayOfRefsForFormatting[i + 1];
+        const prevRef = this.arrayOfRefsForFormatting[i - 1];
         // This 'If' clause handles final ref in arrayOfRefs
         if (i + 1 === this.arrayOfRefsForFormatting.length) {
           // If final ref Id is only 1 more than penultimate...
-          if (
-            this.arrayOfRefsForFormatting[i] -
-              this.arrayOfRefsForFormatting[i - 1] ===
-            1
-          ) {
-            refsInDashedGroup.push(this.arrayOfRefsForFormatting[i]);
-            outputString = outputString.concat(
-              `${refsInDashedGroup[0]}-${
-                refsInDashedGroup[refsInDashedGroup.length - 1]
-              }`
-            );
-            refsInDashedGroup = [];
+          if (thisRef - prevRef === 1) {
+            refsInDashedGroup.push(thisRef);
+            // Handle refsInDashedGroup length is 2 then output 1,2.
+            if (refsInDashedGroup.length <= 2) {
+              outputString = outputString.concat(refsInDashedGroup.toString());
+              refsInDashedGroup = []
+            } else {
+              outputString = outputString.concat(
+                `${refsInDashedGroup[0]}-${thisRef}`
+              );
+              refsInDashedGroup = [];
+            }
             // If final ref Id is more than 1 more than penultimate...
-          } else if (
-            this.arrayOfRefsForFormatting[i] -
-              this.arrayOfRefsForFormatting[i - 1] >
-            1
-          ) {
+          } else if (thisRef - prevRef > 1) {
             outputString = outputString.concat(refsInDashedGroup.toString());
           }
           // Handle in range situations
         } else if (i + 1 < this.arrayOfRefsForFormatting.length) {
           // Next reference is only one more than current reference
-          if (
-            this.arrayOfRefsForFormatting[i + 1] -
-              this.arrayOfRefsForFormatting[i] ===
-            1
-          ) {
-            refsInDashedGroup.push(arrayOfRefsForFormatting[i]);
+          if (nextRef - thisRef === 1) {
+            refsInDashedGroup.push(this.arrayOfRefsForFormatting[i]);
           }
           // Next reference is more than one more than current reference
-          if (
-            this.arrayOfRefsForFormatting[i + 1] -
-              this.arrayOfRefsForFormatting[i] >
-            1
-          ) {
-            refsInDashedGroup.push(this.arrayOfRefsForFormatting[i]);
+          if (nextRef - thisRef > 1) {
+            refsInDashedGroup.push(thisRef);
             if (refsInDashedGroup.length > 2) {
               outputString = outputString.concat(
                 `${refsInDashedGroup[0]}-${
