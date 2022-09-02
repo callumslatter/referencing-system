@@ -50,8 +50,8 @@ export class ReferenceService {
       if (instance.index === undefined) {
         throw new Error("Something went wrong! No instance.index.")
       }
-      if (this.recordExists(instance)) {
-        const existingRef = this.referenceMap.get(instance[0]);
+      const existingRef = this.referenceMap.get(instance[0])
+      if (existingRef) {
         const existingLocations = existingRef.locations;
         const newLocation = instance.index;
         existingLocations.push(newLocation);
@@ -84,10 +84,6 @@ export class ReferenceService {
   // Helper Functions
   private identifyReferences(text: string) {
     return text.matchAll(this.REFERENCE_IDENTIFICATION_REGEX);
-  }
-
-  private recordExists(instance: RegExpMatchArray) {
-    return this.referenceMap.get(instance[0]) !== undefined;
   }
 
   private identifyAdjacentReferences(string: string) {
