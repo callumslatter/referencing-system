@@ -5,9 +5,10 @@ export class ReferenceService {
   private referenceMap = new Map();
   private referenceInstanceMap = new Map();
   private arrayOfRefsForFormatting: number[] = [];
-  // Trackers
+
+  // TODO: Take this counter out of class scope and bring it into local scope
+  // Tracker
   private lastRefToBeFormatted = 0;
-  // Output strings
 
   // Regex
   private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g;
@@ -99,6 +100,7 @@ export class ReferenceService {
   private concatReferencesToFinalOutput(inputText: string, finalText: string, refInstanceCount: number) {
     let startOfReferenceIndex: number = 0;
     let startOfSectionIndex: number = 0;
+  
     // Establish indexes for slice functions
     if (refInstanceCount === 0) {
       startOfSectionIndex = 0;
