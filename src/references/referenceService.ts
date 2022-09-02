@@ -28,9 +28,9 @@ export class ReferenceService {
     let instanceCounter = 1;
 
     // Track where each reference occurs
-    const refInstance = this.identifyReferences(inputText);
+    const refInstance = Array.from(this.identifyReferences(inputText));
     if (!refInstance) {
-      return { text: "No references found", referenceList: [] }
+      throw new Error("Something went wrong! No refInstances.")
     }
     for (const instance of refInstance) {
       if (instance.index === undefined) {
@@ -46,27 +46,26 @@ export class ReferenceService {
 
     // Build a collection of reference authors, indexes of their references, and length of each reference
     // Checks to see if there's a reference directly after the one currently being focused on
-    const rawRefs = this.identifyReferences(inputText);
-    for (const rawRef of rawRefs) {
-      if (rawRef.index === undefined) {
-        throw new Error("Something went wrong!")
+    for (const instance of refInstance) {
+      if (instance.index === undefined) {
+        throw new Error("Something went wrong! No instance.index.")
       }
-      if (this.recordExists(rawRef)) {
-        const existingRef = this.referenceMap.get(rawRef[0]);
+      if (this.recordExists(instance)) {
+        const existingRef = this.referenceMap.get(instance[0]);
         const existingLocations = existingRef.locations;
-        const newLocation = rawRef.index;
+        const newLocation = instance.index;
         existingLocations.push(newLocation);
         this.arrayOfRefsForFormatting.push(existingRef.referenceId);
       } else {
         const newRef: IReference = {
           referenceId: this.referenceMap.size + 1,
-          locations: [rawRef.index],
-          referenceLength: rawRef[0].length,
+          locations: [instance.index],
+          referenceLength: instance[0].length,
         };
-        this.referenceMap.set(rawRef[0], newRef);
+        this.referenceMap.set(instance[0], newRef);
         this.arrayOfRefsForFormatting.push(newRef.referenceId);
       }
-      remainingText = inputText.slice(rawRef.index + rawRef[0].length + 1);
+      remainingText = inputText.slice(instance.index + instance[0].length + 1);
 
       // Check text immediately after the current reference. If nothing adjacent, format existing collection of references.
       this.identifyAdjacentReferences(remainingText);
@@ -87,8 +86,8 @@ export class ReferenceService {
     return text.matchAll(this.REFERENCE_IDENTIFICATION_REGEX);
   }
 
-  private recordExists(rawRef: RegExpMatchArray) {
-    return this.referenceMap.get(rawRef[0]) !== undefined;
+  private recordExists(instance: RegExpMatchArray) {
+    return this.referenceMap.get(instance[0]) !== undefined;
   }
 
   private identifyAdjacentReferences(string: string) {
