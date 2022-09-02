@@ -170,10 +170,16 @@ export class ReferenceService {
           // If final ref Id is only 1 more than penultimate...
           if (thisRef - prevRef === 1) {
             refsInDashedGroup.push(thisRef);
-            outputString = outputString.concat(
-              `${refsInDashedGroup[0]}-${thisRef}`
-            );
-            refsInDashedGroup = [];
+            // Handle refsInDashedGroup length is 2 then output 1,2.
+            if (refsInDashedGroup.length <= 2) {
+              outputString = outputString.concat(refsInDashedGroup.toString());
+              refsInDashedGroup = []
+            } else {
+              outputString = outputString.concat(
+                `${refsInDashedGroup[0]}-${thisRef}`
+              );
+              refsInDashedGroup = [];
+            }
             // If final ref Id is more than 1 more than penultimate...
           } else if (thisRef - prevRef > 1) {
             outputString = outputString.concat(refsInDashedGroup.toString());
