@@ -6,17 +6,14 @@ export class ReferenceService {
   private referenceInstanceMap = new Map();
   private arrayOfRefsForFormatting: number[] = [];
   // Trackers
-  private refInstanceCount = 0;
   private lastRefToBeFormatted = 0;
   // Output strings
-  private finalText: string = "";
-  private inputText: string = "";
+
   // Regex
   private REFERENCE_IDENTIFICATION_REGEX: RegExp = /\[(.+?)\]/g;
 
-  public formatText(inputBody: string): IFormattedText {
-    this.inputText = inputBody;
-    const output = this.refFormatter(this.inputText);
+  public formatText(inputText: string): IFormattedText {
+    const output = this.refFormatter(inputText);
     return {
       formattedText: output.text,
       references: output.referenceList,
@@ -25,7 +22,9 @@ export class ReferenceService {
 
   private refFormatter(inputText: string) {
     let remainingText: string = "";
-    let instanceCounter = 1;
+    let mapIndex = 1;
+    let refInstanceCount = 0;
+    let finalText = "";
 
     // Track where each reference occurs
     const refInstance = Array.from(this.identifyReferences(inputText));
@@ -40,8 +39,8 @@ export class ReferenceService {
         nameYear: instance[0],
         index: instance.index,
       };
-      this.referenceInstanceMap.set(instanceCounter, newRefInstance);
-      instanceCounter++;
+      this.referenceInstanceMap.set(mapIndex, newRefInstance);
+      mapIndex++;
     }
 
     // Build a collection of reference authors, indexes of their references, and length of each reference
@@ -68,17 +67,17 @@ export class ReferenceService {
       remainingText = inputText.slice(instance.index + instance[0].length + 1);
 
       // Check text immediately after the current reference. If nothing adjacent, format existing collection of references.
-      this.identifyAdjacentReferences(remainingText);
-      this.refInstanceCount++;
+      finalText = this.identifyAdjacentReferences(remainingText, inputText, refInstanceCount, finalText);
+      refInstanceCount++;
     }
 
     const referencesLeftToFormat = this.arrayOfRefsForFormatting.length > 0;
 
     if (referencesLeftToFormat) {
-      this.concatReferencesToFinalOutput();
+      finalText = this.concatReferencesToFinalOutput(inputText, finalText, refInstanceCount);
     }
     const referenceList = this.createReferenceList(this.referenceMap);
-    return { text: this.finalText, referenceList };
+    return { text: finalText, referenceList };
   }
 
   // Helper Functions
@@ -86,20 +85,22 @@ export class ReferenceService {
     return text.matchAll(this.REFERENCE_IDENTIFICATION_REGEX);
   }
 
-  private identifyAdjacentReferences(string: string) {
-    if (!string) {
-      return;
+  private identifyAdjacentReferences(remainingText: string, inputText: string, refInstanceCount: number, finalText: string) {
+    if (!remainingText) {
+      return finalText;
     }
-    if (!this.isOpenSquareBracket(string[0])) {
-      this.concatReferencesToFinalOutput();
+    if (!this.isOpenSquareBracket(remainingText[0])) {
+      finalText = this.concatReferencesToFinalOutput(inputText, finalText, refInstanceCount);
+      return finalText
     }
+    return finalText
   }
 
-  private concatReferencesToFinalOutput() {
+  private concatReferencesToFinalOutput(inputText: string, finalText: string, refInstanceCount: number) {
     let startOfReferenceIndex: number = 0;
     let startOfSectionIndex: number = 0;
     // Establish indexes for slice functions
-    if (this.refInstanceCount === 0) {
+    if (refInstanceCount === 0) {
       startOfSectionIndex = 0;
       startOfReferenceIndex = this.referenceInstanceMap.get(1).index;
     } else {
@@ -114,17 +115,18 @@ export class ReferenceService {
       ).index;
     }
     // Obtains the text between groups of references and adds it to output
-    let textBetweenReferences = this.inputText.slice(
+    let textBetweenReferences = inputText.slice(
       startOfSectionIndex,
       startOfReferenceIndex
     );
-    this.finalText = this.finalText.concat(textBetweenReferences);
+    finalText = finalText.concat(textBetweenReferences);
     // Add formatted group of references to output
     const formattedReferences = this.formatGroupOfReferences();
-    this.finalText = this.finalText.concat(`(${formattedReferences})`);
+    finalText = finalText.concat(`(${formattedReferences})`);
     // Reset array of refs and track last amended position
     this.arrayOfRefsForFormatting = [];
-    this.lastRefToBeFormatted = this.refInstanceCount + 1;
+    this.lastRefToBeFormatted = refInstanceCount + 1;
+    return finalText
   }
 
   private createReferenceList(referenceMap: Map<any, any>) {
